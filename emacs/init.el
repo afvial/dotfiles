@@ -148,20 +148,22 @@
         imenu-list-auto-resize t))
 
 ;; Índice jerárquico: usa la indentación del XML para calcular
-;; el nivel de anidamiento. Requiere XML bien formateado (xmllint).
+;; el nivel de anidamiento. Usa puntos medios (·) en lugar de
+;; espacios para que el texto sea siempre visible en el panel.
+
 (defun my-tei-imenu-index ()
   "Construye un índice imenu jerárquico para buffers TEI."
   (let (index)
     (goto-char (point-min))
     (while (re-search-forward
-            "^\\( *\\)<\\([^/!? \t\r\n>/]+\\)\\([^>]*\\)>" nil t)
-      (let* ((indent   (length (match-string-no-properties 1)))
-             (raw-tag  (match-string-no-properties 2))
-             (attrs    (match-string-no-properties 3))
-             (tag      (replace-regexp-in-string ".*:" "" raw-tag))
-             (pos      (match-beginning 0))
-             (level    (/ indent 2)))
-        (when (member tag '("div" "p" "s" "head" "lg" "l" "note" "body" "text"))
+            "^\\( *\\)<\\([^/!? \t\r\n>/]+\\)\\([^/>]*\\)/?>" nil t)
+      (let* ((indent  (length (match-string-no-properties 1)))
+             (raw-tag (match-string-no-properties 2))
+             (attrs   (match-string-no-properties 3))
+             (tag     (replace-regexp-in-string ".*:" "" raw-tag))
+             (pos     (match-beginning 0))
+             (level   (/ indent 2)))
+        (when (member tag '("div" "p" "s" "head" "lg" "l" "note" "body" "text" "lb"))
           (let* ((id  (when (string-match "xml:id=\"\\([^\"]+\\)\"" attrs)
                         (match-string 1 attrs)))
                  (n   (when (string-match "\\bn=\"\\([^\"]+\\)\"" attrs)
@@ -170,8 +172,9 @@
                         (id (format "%s#%s" tag id))
                         (n  (format "%s[%s]" tag n))
                         (t  (format "%s:L%d" tag (line-number-at-pos pos)))))
-                 ;; Indentación visual proporcional al nivel de anidamiento
-                 (label (format "%s%s" (make-string (* level 2) ?\s) base)))
+                 (label (if (string= tag "lb")
+                            (format "···%s" base)   ; nivel fijo para lb
+                          (format "%s%s" (make-string level ?·) base))))
             (push (cons label pos) index)))))
     (nreverse index)))
 
