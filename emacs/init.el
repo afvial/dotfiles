@@ -150,34 +150,32 @@
 
 ;; Se extrae el atributo @n o @xml:id si existe, y se añade
 ;; el número de línea para distinguir entradas sin atributo.
+
 (defun my-tei-imenu-index ()
-  "Construye un índice imenu para buffers TEI."
+  "Construye un índice imenu jerárquico para buffers TEI."
   (let (index)
     (goto-char (point-min))
     (while (re-search-forward
-            "<\\([^/!? \t\r\n>/]+\\)\\([^>]*\\)>" nil t)
-      (let* ((raw-tag  (match-string-no-properties 1))
-             (attrs    (match-string-no-properties 2))
+            "^\\( *\\)<\\([^/!? \t\r\n>/]+\\)\\([^>]*\\)>" nil t)
+      (let* ((indent   (length (match-string-no-properties 1)))
+             (raw-tag  (match-string-no-properties 2))
+             (attrs    (match-string-no-properties 3))
              (tag      (replace-regexp-in-string ".*:" "" raw-tag))
-             (pos      (match-beginning 0)))
+             (pos      (match-beginning 0))
+             (level    (/ indent 2)))
         (when (member tag '("div" "p" "s" "head" "lg" "l" "note" "body" "text"))
-          (let* ((id  (when (string-match
-                             "xml:id=\"\\([^\"]+\\)\"" attrs)
+          (let* ((id  (when (string-match "xml:id=\"\\([^\"]+\\)\"" attrs)
                         (match-string 1 attrs)))
-                 (n   (when (string-match
-                             "\\bn=\"\\([^\"]+\\)\"" attrs)
+                 (n   (when (string-match "\\bn=\"\\([^\"]+\\)\"" attrs)
                         (match-string 1 attrs)))
-                 (label (cond
-                         (id (format "%s#%s" tag id))
-                         (n  (format "%s[%s]" tag n))
-                         (t  (format "%s:L%d" tag
-                                     (line-number-at-pos pos))))))
+                 (base (cond
+                        (id (format "%s#%s" tag id))
+                        (n  (format "%s[%s]" tag n))
+                        (t  (format "%s:L%d" tag (line-number-at-pos pos)))))
+                 ;; Indentación visual proporcional al nivel de anidamiento
+                 (label (format "%s%s" (make-string (* level 2) ?\s) base)))
             (push (cons label pos) index)))))
     (nreverse index)))
-
-(add-hook 'nxml-mode-hook
-          (lambda ()
-            (setq imenu-create-index-function #'my-tei-imenu-index)))
 
 ;;; ---------------- Formateo XML con xmllint ----------------
 
@@ -224,6 +222,15 @@
 (provide 'init)
 
 (custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  '(package-selected-packages nil))
 
-(custom-set-faces)
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
