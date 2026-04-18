@@ -135,7 +135,6 @@
 
 ;; yafolding usa indentación para plegar, lo que funciona bien
 ;; con XML bien formateado. Complementa xmllint --format.
-;; Reemplaza la implementación manual anterior de tei-fold-*.
 (use-package yafolding
   :hook (nxml-mode . yafolding-mode))
 
@@ -148,9 +147,8 @@
         imenu-list-focus-after-activation t
         imenu-list-auto-resize t))
 
-;; Se extrae el atributo @n o @xml:id si existe, y se añade
-;; el número de línea para distinguir entradas sin atributo.
-
+;; Índice jerárquico: usa la indentación del XML para calcular
+;; el nivel de anidamiento. Requiere XML bien formateado (xmllint).
 (defun my-tei-imenu-index ()
   "Construye un índice imenu jerárquico para buffers TEI."
   (let (index)
@@ -209,6 +207,9 @@
             ;; Completado manual con TAB
             (local-set-key (kbd "TAB") #'indent-for-tab-command)
 
+            ;; Índice imenu jerárquico TEI
+            (setq-local imenu-create-index-function #'my-tei-imenu-index)
+
             ;; corfu-auto activado solo dentro de tags (<…>)
             ;; para no interrumpir escritura de texto prosa.
             (add-hook 'post-self-insert-hook
@@ -222,15 +223,6 @@
 (provide 'init)
 
 (custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
  '(package-selected-packages nil))
 
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+(custom-set-faces)
