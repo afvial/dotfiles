@@ -197,6 +197,17 @@
 
 ;;; ---------------- TEI insertion helpers ----------------
 
+(defun my-tei-insert-choice-sic ()
+  "Inserta <choice><sic>/<corr> con indentación relativa al punto actual.
+Pide la lectura errónea del texto y la corrección en el minibuffer."
+  (interactive)
+  (let* ((sic  (read-string "Lectura del texto (sic): "))
+         (corr (read-string "Corrección (corr): "))
+         (pad  (make-string (current-column) ?\s)))
+    (insert
+     (format "<choice>\n%s  <sic>\n%s    <w>%s</w>\n%s  </sic>\n%s  <corr>\n%s    <w>%s</w>\n%s  </corr>\n%s</choice>"
+             pad pad sic pad pad pad corr pad pad))))
+
 (defun my-tei-insert-choice-orig ()
   "Inserta <choice><orig>/<reg> con indentación relativa al punto actual.
 Pide la grafía original y la forma regularizada en el minibuffer."
@@ -238,6 +249,9 @@ Pide la abreviatura y la expansión en el minibuffer."
             ;; Insertar <choice><orig>/<reg> con indentación automática
             ;; C-c x o → pide grafía original y forma regularizada en minibuffer
             (local-set-key (kbd "C-c x o") #'my-tei-insert-choice-orig)
+
+            ;; Insertar <choice><sic>/<corr>
+            (local-set-key (kbd "C-c x s") #'my-tei-insert-choice-sic)
 
             ;; Completado manual con TAB
             (local-set-key (kbd "TAB") #'indent-for-tab-command)
