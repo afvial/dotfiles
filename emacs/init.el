@@ -195,6 +195,30 @@
      "*xmllint-errors*" t)
     (goto-char pos)))
 
+;;; ---------------- TEI insertion helpers ----------------
+
+(defun my-tei-insert-choice-orig ()
+  "Inserta <choice><orig>/<reg> con indentación relativa al punto actual.
+Pide la grafía original y la forma regularizada en el minibuffer."
+  (interactive)
+  (let* ((orig  (read-string "Grafía original: "))
+         (reg   (read-string "Forma regularizada: "))
+         (pad   (make-string (current-column) ?\s)))
+    (insert
+     (format "<choice>\n%s  <orig>\n%s    <w>%s</w>\n%s  </orig>\n%s  <reg>\n%s    <w>%s</w>\n%s  </reg>\n%s</choice>"
+             pad pad orig pad pad pad reg pad pad))))
+
+(defun my-tei-insert-choice-abbr ()
+  "Inserta <choice><abbr>/<expan> con indentación relativa al punto actual.
+Pide la abreviatura y la expansión en el minibuffer."
+  (interactive)
+  (let* ((abbr  (read-string "Abreviatura: "))
+         (expan (read-string "Expansión: "))
+         (pad   (make-string (current-column) ?\s)))
+    (insert
+     (format "<choice>\n%s  <abbr>\n%s    <w>%s</w>\n%s  </abbr>\n%s  <expan>\n%s    <w>%s</w>\n%s  </expan>\n%s</choice>"
+             pad pad abbr pad pad pad expan pad pad))))
+
 ;;; ---------------- nxml keybindings ----------------
 
 (add-hook 'nxml-mode-hook
@@ -206,6 +230,14 @@
 
             ;; Formateo con xmllint
             (local-set-key (kbd "C-c x f") #'my-nxml-format-buffer)
+
+            ;; Insertar <choice><abbr>/<expan> con indentación automática
+            ;; C-c x a → pide abreviatura y expansión en minibuffer
+            (local-set-key (kbd "C-c x a") #'my-tei-insert-choice-abbr)
+
+            ;; Insertar <choice><orig>/<reg> con indentación automática
+            ;; C-c x o → pide grafía original y forma regularizada en minibuffer
+            (local-set-key (kbd "C-c x o") #'my-tei-insert-choice-orig)
 
             ;; Completado manual con TAB
             (local-set-key (kbd "TAB") #'indent-for-tab-command)
